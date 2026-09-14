@@ -12,6 +12,12 @@ spec:
   serviceMonitorSelector:
     matchLabels:
       release: prometheus
+  spec:
+  alerting:
+    alertmanagers:
+    - namespace: default
+      name: alertmanager-operated
+      port: web
   affinity:
     podAntiAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
