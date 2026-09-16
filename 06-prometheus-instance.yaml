@@ -12,7 +12,6 @@ spec:
   serviceMonitorSelector:
     matchLabels:
       release: prometheus
-  spec:
   alerting:
     alertmanagers:
     - namespace: default
