@@ -4,6 +4,9 @@ metadata:
   name: alertmanager
   namespace: default
 spec:
+  alertManagerSelector:
+    matchLabels:
+      
   replicas: 1
   resources:
     requests:
