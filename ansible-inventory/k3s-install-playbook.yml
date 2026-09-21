@@ -1,0 +1,24 @@
+---
+- name: 安装k3s
+  host: k3sserver
+  become: yes
+  tasks:
+  - name: 更新apt cache
+    apt:
+      update_cache: yes
+  - name: 下载必要组件
+    apt:
+      name:
+      - curl
+      - conntrack
+  - name: 下载k3s
+    shell: curl https://get.k3s.io | sh -
+    args:
+    creates: /usr/local/bin/k3s
+  - name: 验证k3s是否正常运行
+    shell: kubectl get podes
+    register: k3s
+    changed_when: false
+  - name: 显示信息
+    debug:
+      msg: "{{k3s.stdout}}"
