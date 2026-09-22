@@ -11,10 +11,16 @@
       name:
       - curl
       - conntrack
+      state: present
   - name: 下载k3s
     shell: curl https://get.k3s.io | sh -
     args:
       creates: /usr/local/bin/k3s
+  - name: 设置kube变量
+    lineinfile:
+      path: /root/.bashrc
+      line: 'export KUBECONFIG=/etc/rancher/k3s/k3s.yaml'
+      state: present
   - name: 验证k3s是否正常运行
     shell: kubectl get nodes
     register: k3s
