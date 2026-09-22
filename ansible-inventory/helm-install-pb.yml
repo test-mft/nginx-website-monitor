@@ -1,0 +1,12 @@
+---
+- name: 安装helm插件
+  hosts: k3sserver
+  become: yes
+  tasks:
+  - name: 下载 Helm 安装脚本
+    get_url:
+      url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+      dest: /tmp/get_helm.sh
+      mode: '0700'
+  - name: 执行安装脚本
+    shell: /tmp/get_helm.sh
