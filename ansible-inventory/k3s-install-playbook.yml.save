@@ -16,12 +16,9 @@
     shell: curl https://get.k3s.io | sh -
     args:
       creates: /usr/local/bin/k3s
-  - name: 设置kube变量
+  - name: 复制kubeconfig文件至默认位置
     copy:
-      src: /etc/rancher/k3s/k3s.yaml
-      dest: /root/.kube/config
-      remote_src: yes
-      mode: '0600'
+  
   - name: 验证k3s是否正常运行
     shell: kubectl get nodes
     register: k3s

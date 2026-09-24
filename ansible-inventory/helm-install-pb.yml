@@ -1,5 +1,5 @@
 ---
-- name: 安装helm插件
+- name: 安装helm插件并下载promtail和loki
   hosts: k3sserver
   become: yes
   tasks:
@@ -10,3 +10,22 @@
       mode: '0700'
   - name: 执行安装脚本
     shell: /tmp/get_helm.sh
+  - name: 添加helm仓库
+    shell: helm repo add grafana https://grafana.github.io/helm-charts
+    changed_when: false
+  - name: 更新helm仓库
+    shell: helm repo update
+    changed_when: false
+  - name: 创建monitoring命名空间
+    shell: kubectl create namespace monitoring
+    register: ns_result
+    failed_when: "'already exists' not in ns_result.stderr and ns_result.rc != 0"
+    changed_when: ns_result.rc == 0
+  - name: 下载loki和promtail
+    shell: helm upgrade --install loki grafana/loki-stack \
+             --namespace monitoring \
+             --set promtail.enabled=true \
+             --set loki.persistence.enabled=true \
+             --set loki.persistence.size=10Gi \
+             --set loki.image.tag=2.9.3
+    changed_when: true
