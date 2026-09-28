@@ -1,0 +1,15 @@
+apiversion: v1
+kind: NetworkPolicy
+metadata:
+  name: networkpolicy
+spec:
+  podselector:
+    matchLabels:
+      app: nginx-exporter
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: nginx-exporter
