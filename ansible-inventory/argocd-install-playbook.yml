@@ -1,0 +1,54 @@
+---
+- name: 安装 ArgoCD
+  hosts: k3sserver
+  become: yes
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml   # 关键：让 kubectl 能找到集群
+  tasks:
+    - name: 创建 argocd 命名空间
+      shell: kubectl create namespace argocd
+      register: ns_result
+      failed_when: "'AlreadyExists' not in ns_result.stderr and ns_result.rc != 0"
+      changed_when: ns_result.rc == 0
+
+    - name: 安装 ArgoCD
+      shell: |
+        kubectl apply -n argocd --server-side --force-conflicts \
+          -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+      changed_when: true
+
+    - name: 等待 ArgoCD Pod 就绪
+      shell: kubectl -n argocd wait --for=condition=Ready pod --all --timeout=180s
+      changed_when: false
+
+    - name: 获取初始管理员密码
+      shell: >
+        kubectl -n argocd get secret argocd-initial-admin-secret
+        -o jsonpath="{.data.password}" | base64 -d
+      register: argocd_password
+      changed_when: false
+
+    - name: 输出初始密码
+      debug:
+        msg: "ArgoCD admin 密码: {{ argocd_password.stdout }}"
+
+    - name: 将 ArgoCD Server 暴露为 NodePort
+      shell: kubectl -n argocd patch svc argocd-server -p '{"spec":{"type":"NodePort"}}'
+      changed_when: true
+
+    - name: 获取 NodePort
+      shell: >
+        kubectl -n argocd get svc argocd-server
+        -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}'
+      register: argocd_nodeport
+      changed_when: false
+
+    - name: 获取公网地址
+      shell:
+        curl ip.sb
+      register: network_address
+      changed_when: false
+
+    - name: 输出访问地址
+      debug:
+        msg: "ArgoCD UI: https://{{network_address}}:{{ argocd_nodeport.stdout }}"
